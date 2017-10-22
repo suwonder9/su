@@ -17,6 +17,11 @@
 			<directory>${project.build.directory}/classes</directory>
 			<outputDirectory>classes</outputDirectory>
 		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources</directory>
+			<outputDirectory>/resources</outputDirectory>
+		</fileSet>
 	</fileSets>
 
 	<dependencySets>
