@@ -15,7 +15,7 @@ if [ -n "${PIDs}" ]; then
 fi
 
 # classpath
-CLASSPATH="${PACKAGE_HOME}/classes:${PACKAGE_HOME}/lib/*"
+CLASSPATH="${PACKAGE_HOME}/classes:${PACKAGE_HOME}/lib/*:${PACKAGE_HOME}/resources:${PACKAGE_HOME}/config"
 
 # JVM startup parameters
 JAVA_OPTS="-server -Xms1024M -Xmx2048M -Duser.timezone=Asia/Shanghai -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${PACKAGE_HOME}"
