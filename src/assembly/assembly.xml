@@ -13,15 +13,15 @@
 			<fileMode>0755</fileMode>
 		</fileSet>
 
-		<fileSet>
-			<directory>${project.build.directory}/classes</directory>
-			<outputDirectory>classes</outputDirectory>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/resources</directory>
+            <outputDirectory>/resources</outputDirectory>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources</directory>
-			<outputDirectory>/resources</outputDirectory>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/config</directory>
+            <outputDirectory>/config</outputDirectory>
+        </fileSet>
 	</fileSets>
 
 	<dependencySets>
