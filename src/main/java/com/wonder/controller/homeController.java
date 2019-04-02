@@ -1,5 +1,6 @@
 package com.wonder.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -15,12 +16,14 @@ import java.util.List;
 
 
 @Controller
+@Slf4j
 public class homeController {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @RequestMapping("/home")
     public String home(){
+        logger.info("home ,{}", LocalDateTime.now());
         return "/home";
     }
 
