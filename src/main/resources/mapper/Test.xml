@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ The MIT License (MIT)
+  ~
+  ~ Copyright (c) 2014-2016 abel533@gmail.com
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in
+  ~ all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ THE SOFTWARE.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wonder.mapper.TestMapper">
+    <resultMap id="individualTicket" type="com.wonder.entity.individualTicketVo">
+        <result column="ACCOUNT_ID" property="accountId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="USER_ACCOUNT_NAME" property="accountName" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <resultMap id="depositAccountLog" type="com.wonder.entity.DepositAccountLog">
+        <result column="ID" property="logId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="COMPANY_NAME" property="accountName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="region" property="region" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <select id="individualTicketCount" resultType="java.lang.Integer">
+        select count(1) from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id
+    </select>
+
+    <select id="individualTicketQuery" resultMap="individualTicket">
+        select o.ACCOUNT_ID,o.USER_ACCOUNT_NAME from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id
+    </select>
+
+    <select id="depositAccountLogCount" resultType="java.lang.Integer">
+        select count(1) from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id
+    </select>
+
+    <select id="depositAccountLogQuery" resultMap="depositAccountLog">
+        select a.ID,a.COMPANY_NAME,case da.REGION when 'GZ' then '广州长隆' when 'ZH' then '珠海长隆' when 'QY' then '清远长隆' end region from DMP_MAIN_DEPOSIT_ACCOUNT_LOG log join DMP_MAIN_DEPOSIT_ACCOUNT da on da.ID = log.DEPOSIT_ACCOUNT_ID join DMP_MAIN_ACCOUNT a on a.ID = da.ACCOUNT_ID
+    </select>
+
+
+
+</mapper>
