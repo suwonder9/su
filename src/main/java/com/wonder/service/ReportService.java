@@ -2,22 +2,28 @@ package com.wonder.service;
 
 
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import com.wonder.entity.DepositAccountLog;
-import com.wonder.entity.individualTicketVo;
 import com.wonder.mapper.TestMapper;
+import com.wonder.utils.ExportColumn;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.xssf.streaming.SXSSFCell;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -26,53 +32,80 @@ public class ReportService {
     @Autowired
     private TestMapper testMapper;
 
-    public void exportBigDataExcel(String path)
-            throws IOException {
-        // 最重要的就是使用SXSSFWorkbook，表示流的方式进行操作
-        // 在内存中保持100行，超过100行将被刷新到磁盘
-        SXSSFWorkbook wb = new SXSSFWorkbook(1000);
-        Sheet sh = wb.createSheet(); // 建立新的sheet对象
-        Row row = sh.createRow(0); // 创建第一行对象
-        // -----------定义表头-----------
-        Cell cel0 = row.createCell(0);
-        cel0.setCellValue("1");
-        Cell cel2 = row.createCell(1);
-        cel2.setCellValue("2");
-        Cell cel3 = row.createCell(2);
-        cel3.setCellValue("3");
-        Cell cel4 = row.createCell(3);
-        // ---------------------------
-        List<DepositAccountLog> list = new ArrayList<>();
-        // 数据库中存储的数据行
-        int page_size = 20000;
-        // 求数据库中待导出数据的行数
-        int list_count = testMapper.depositAccountLogCount();
-        log.info("count===>{}",list_count);
-        // 根据行数求数据提取次数
-        int export_times = list_count % page_size > 0 ? list_count / page_size
-                + 1 : list_count / page_size;
-        // 按次数将数据写入文件
-        for (int j = 0; j < export_times; j++) {
-            PageHelper.startPage(j,20000);
-            list = testMapper.depositAccountLogQuery();
-            int len = list.size() < page_size ? list.size() : page_size;
+    private static Integer PAGE_SIZE = 200000;
 
-            for (int i = 0; i < len; i++) {
-                Row row_value = sh.createRow(j * page_size + i + 1);
-                Cell cel0_value = row_value.createCell(0);
-                cel0_value.setCellValue(list.get(i).getLogId());
-                Cell cel2_value = row_value.createCell(1);
-                cel2_value.setCellValue(list.get(i).getAccountName());
-                Cell cel3_value = row_value.createCell(2);
-                cel3_value.setCellValue(list.get(i).getRegion());
-            }
-            list.clear(); // 每次存储len行，用完了将内容清空，以便内存可重复利用
+    public  void export(HttpServletResponse response) throws IOException {
+        long start = System.currentTimeMillis();
+        SXSSFWorkbook wb = new SXSSFWorkbook(1000);
+        SXSSFSheet sheet = wb.createSheet();
+        sheet.setRandomAccessWindowSize(-1);
+        SXSSFRow headRow = sheet.createRow(0);
+        //头栏样式设置
+        CellStyle headRowStyle = wb.createCellStyle();
+//        headRowStyle.setFillBackgroundColor();
+//        headRowStyle.setFillForegroundColor();
+        Font fontStyle = wb.createFont();
+        fontStyle.setFontHeightInPoints((short) 14); //设置字体高度
+        headRowStyle.setFont(fontStyle);
+        headRow.setHeight((short) 350);
+
+        //内容栏样式设置
+        CellStyle cellStyle = wb.createCellStyle();
+        Font cellFont = wb.createFont();
+        cellFont.setFontHeightInPoints((short) 10); //设置字体高度
+        cellStyle.setFont(cellFont);
+
+        int cellIndex = 0;//为了防止个别列隐藏的情况
+        String lie = "accountId,accountName,region,transactionDate,logId,category,subCategory,transactionAmount,operatorName,operateDate,comments";
+        String ss = "账号id,代理商名称,区域,交易日期,日志id,交易类型,交易方式,交易金额,操作人,操作日期,备注";
+        List<String> columns = Lists.newArrayList(lie.split(","));
+        List<String> titles = Lists.newArrayList(ss.split(","));
+
+        for (int k = 0; k < columns.size(); k++) {
+            String col = titles.get(k);
+            int width = 100;
+            sheet.setColumnWidth(cellIndex, width * 50);
+            SXSSFCell cell = headRow.createCell(cellIndex);
+            cell.setCellValue(col);
+            cell.setCellStyle(cellStyle);
+            cellIndex++;
         }
-        FileOutputStream fileOut = new FileOutputStream(path);
-        wb.write(fileOut);
-        fileOut.close();
-        wb.dispose();
+
+        long num = testMapper.depositAccountLogCount();
+        log.info("num {}",num);
+        List<DepositAccountLog> list = testMapper.depositAccountLogQuery();
+        createSheet(sheet,cellStyle,list,columns);
+
+        long end = System.currentTimeMillis();
+        log.info("处理时间 ，{}",(end-start)/1000);
+
+        wb.write(response.getOutputStream());
     }
 
 
+    private void createSheet(SXSSFSheet sheet,CellStyle cellStyle, List<?> exportData, List<String> columns) {
+        for (int i = 0; i < exportData.size(); i++) {
+            Object obj = exportData.get(i);
+            SXSSFRow row = sheet.createRow(i + 1);
+            int cellIndex = 0;//为了防止个别列隐藏的情况
+            for (int k = 0; k < columns.size(); k++) {
+                String col = columns.get(k);
+                String celVal = "";
+                try {
+                    if (StringUtils.isNotBlank(col)) {
+                        Object celValObj = PropertyUtils.getProperty(obj, col);
+                        if (celValObj != null) {
+                            celVal = celValObj.toString();
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+                SXSSFCell cell = row.createCell(cellIndex);
+                cell.setCellValue(celVal);
+                cell.setCellStyle(cellStyle);
+                cellIndex++;
+            }
+        }
+    }
 }

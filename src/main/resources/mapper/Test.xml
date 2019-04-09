@@ -31,9 +31,18 @@
     </resultMap>
 
     <resultMap id="depositAccountLog" type="com.wonder.entity.DepositAccountLog">
-        <result column="ID" property="logId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="ID" property="accountId" javaType="java.lang.String" jdbcType="VARCHAR" />
         <result column="COMPANY_NAME" property="accountName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="GMT_CREATE" property="transactionDate" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="REFER_ID" property="referId" javaType="java.lang.String" jdbcType="VARCHAR" />
         <result column="region" property="region" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="CATEGORY" property="category" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="SUB_CATEGORY" property="subCategory" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="logId" property="logId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="TRANSACTION_AMOUNT" property="transactionAmount" javaType="java.lang.Double" jdbcType="DECIMAL" />
+        <result column="OPERATOR_NAME" property="operatorName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="operateDate" property="operateDate" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="COMMENTS" property="comments" javaType="java.lang.String" jdbcType="VARCHAR" />
     </resultMap>
 
     <select id="individualTicketCount" resultType="java.lang.Integer">
@@ -45,11 +54,13 @@
     </select>
 
     <select id="depositAccountLogCount" resultType="java.lang.Integer">
-        select count(1) from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id
+        select count(1) from DMP_MAIN_DEPOSIT_ACCOUNT_LOG log join DMP_MAIN_DEPOSIT_ACCOUNT da on da.ID = log.DEPOSIT_ACCOUNT_ID join DMP_MAIN_ACCOUNT a on a.ID = da.ACCOUNT_ID
+--         where CATEGORY <![CDATA[ <> ]]> 'FREEZE_AMOUNT' and CATEGORY <![CDATA[ <> ]]> 'UNFREEZE_AMOUNT'
     </select>
 
     <select id="depositAccountLogQuery" resultMap="depositAccountLog">
-        select a.ID,a.COMPANY_NAME,case da.REGION when 'GZ' then '广州长隆' when 'ZH' then '珠海长隆' when 'QY' then '清远长隆' end region from DMP_MAIN_DEPOSIT_ACCOUNT_LOG log join DMP_MAIN_DEPOSIT_ACCOUNT da on da.ID = log.DEPOSIT_ACCOUNT_ID join DMP_MAIN_ACCOUNT a on a.ID = da.ACCOUNT_ID
+        select a.ID,a.COMPANY_NAME,log.GMT_CREATE,case da.REGION when 'GZ' then '广州长隆' when 'ZH' then '珠海长隆' when 'QY' then '清远长隆' end region,CATEGORY,SUB_CATEGORY,log.ID logId,TRANSACTION_AMOUNT,OPERATOR_NAME,log.GMT_CREATE operateDate,log.COMMENTS from DMP_MAIN_DEPOSIT_ACCOUNT_LOG log join DMP_MAIN_DEPOSIT_ACCOUNT da on da.ID = log.DEPOSIT_ACCOUNT_ID join DMP_MAIN_ACCOUNT a on a.ID = da.ACCOUNT_ID
+--         where CATEGORY <![CDATA[ <> ]]> 'FREEZE_AMOUNT' and CATEGORY <![CDATA[ <> ]]> 'UNFREEZE_AMOUNT'
     </select>
 
 

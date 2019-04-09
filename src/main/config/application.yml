@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
     url: jdbc:oracle:thin:@10.191.66.31:1521:orcl
-    username: cldmp_dev
+    username: cldmp_test
     password: p@ssword
 
 pagehelper:
