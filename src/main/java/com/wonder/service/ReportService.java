@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
 
@@ -22,22 +25,40 @@ import java.util.List;
 @Slf4j
 public class ReportService {
 
-    public  void export(String columnStr,String titleStr,List<?> list,HttpServletResponse response) throws IOException {
-        long start = System.currentTimeMillis();
+    public  void export(String exportName,String columnStr,String titleStr,List<?> list,HttpServletResponse response){
+        OutputStream os = null;
         SXSSFWorkbook wb = new SXSSFWorkbook(1000);
-        SXSSFSheet sheet = wb.createSheet();
-        sheet.setRandomAccessWindowSize(-1);
 
-        List<String> columns = Lists.newArrayList(columnStr.split(","));
-        List<String> titles = Lists.newArrayList(titleStr.split(","));
+        try {
+            os = response.getOutputStream();
+            response.setContentType("application/force-download");
+            response.setHeader("Content-Disposition", "attachment; filename="+ URLEncoder.encode( exportName+".xlsx", "UTF-8"));
 
-        setHeader(wb,sheet,columns,titles);
-        createSheet(wb,sheet,list,columns);
+            long start = System.currentTimeMillis();
+            SXSSFSheet sheet = wb.createSheet();
 
-        wb.write(response.getOutputStream());
-        
-        long end = System.currentTimeMillis();
-        log.info("处理时间 ，{}",(end-start)/1000);
+            List<String> columns = Lists.newArrayList(columnStr.split(","));
+            List<String> titles = Lists.newArrayList(titleStr.split(","));
+
+            setHeader(wb,sheet,columns,titles);
+            createSheet(wb,sheet,list,columns);
+
+            wb.write(os);
+
+            long end = System.currentTimeMillis();
+            log.info("处理时间 ，{}",(end-start)/1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                wb.close();
+                if (os != null) {
+                    os.close();
+                }
+            } catch (IOException e) {
+                log.error("report fail message{}",e.getMessage());
+            } // 关闭输出流
+        }
     }
 
     private  void setHeader(SXSSFWorkbook wb,SXSSFSheet sheet, List<String> columns,List<String> titles) {
@@ -89,11 +110,31 @@ public class ReportService {
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
+                if ("itemStatus".equals(col)){
+                    celVal = orderStatus(celVal);
+                }
                 SXSSFCell cell = row.createCell(cellIndex);
                 cell.setCellValue(celVal);
                 cell.setCellStyle(cellStyle);
                 cellIndex++;
             }
+        }
+    }
+
+
+    private String orderStatus(String val){
+        if ("CREATED,MODIFY_UNPAID,CANCEL_UNPAID".matches("(.*)"+val+"(.*)")){
+            return "未支付";
+        }else if ("CREATE_REVIEW,MODIFY_REVIEW,CANCEL_REVIEW".matches("(.*)"+val+"(.*)")){
+            return "待审核";
+        }else if ("CONFIRMED,EXECUTING".matches("(.*)"+val+"(.*)")){
+            return "已支付";
+        }else if ("CANCELED,'CREATE_REJECTED".matches("(.*)"+val+"(.*)")){
+            return "已取消";
+        }else if ("COMPLETED".matches("(.*)"+val+"(.*)")){
+            return "已完成";
+        }else {
+            return "未定义状态";
         }
     }
 }
