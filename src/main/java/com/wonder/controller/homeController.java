@@ -21,8 +21,10 @@ import java.time.LocalDateTime;
 public class homeController {
 
 
-    @Autowired
-    private ReportService reportService;
+    private static String DEPOSITACCOUNTLOG_COLUMN = "accountId,accountName,region,transactionDate,logId,category,subCategory,transactionAmount,operatorName,operateDate,comments";
+
+    private static String DEPOSITACCOUNTLOG_TITLE = "账号id,代理商名称,区域,交易日期,日志id,交易类型,交易方式,交易金额,操作人,操作日期,备注";
+
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -36,15 +38,5 @@ public class homeController {
     public String login(){
         logger.info("login now ,{}", LocalDateTime.now());
         return "login";
-    }
-
-    @GetMapping("/list")
-    @ResponseBody
-    public void travelList(HttpServletResponse response) throws IOException {
-        logger.info("login now ,{}", LocalDateTime.now());
-        response.setContentType("application/x-msdownload");
-        response.setHeader("Content-Disposition", "attachment; filename="+ URLEncoder.encode( String.valueOf(System.currentTimeMillis())+".xls", "UTF-8"));
-
-        reportService.export(response);
     }
 }

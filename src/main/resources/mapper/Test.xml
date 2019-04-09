@@ -25,11 +25,6 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.wonder.mapper.TestMapper">
-    <resultMap id="individualTicket" type="com.wonder.entity.individualTicketVo">
-        <result column="ACCOUNT_ID" property="accountId" javaType="java.lang.String" jdbcType="VARCHAR" />
-        <result column="USER_ACCOUNT_NAME" property="accountName" javaType="java.lang.String" jdbcType="VARCHAR" />
-    </resultMap>
-
     <resultMap id="depositAccountLog" type="com.wonder.entity.DepositAccountLog">
         <result column="ID" property="accountId" javaType="java.lang.String" jdbcType="VARCHAR" />
         <result column="COMPANY_NAME" property="accountName" javaType="java.lang.String" jdbcType="VARCHAR" />
@@ -45,22 +40,50 @@
         <result column="COMMENTS" property="comments" javaType="java.lang.String" jdbcType="VARCHAR" />
     </resultMap>
 
+    <resultMap id="individualTicket" type="com.wonder.entity.IndividualTicketVo">
+        <result column="ACCOUNT_ID" property="accountId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="USER_ACCOUNT_NAME" property="userName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="id" property="orderId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="ACCOUNT_NAME" property="accountName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="gmt_create" property="orderDate" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="product_name" property="productName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="print_ticket_name" property="printTicketName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="proxy_name" property="proxyName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="park_name" property="parkName" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="quantity" property="quantity" javaType="java.lang.Double" jdbcType="DECIMAL" />
+        <result column="tran_amount" property="tranAmount" javaType="java.lang.Double" jdbcType="DECIMAL" />
+        <result column="settle_price" property="settlePrice" javaType="java.lang.Double" jdbcType="DECIMAL" />
+        <result column="CONTACT_MOBILE" property="contactMobile" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="reference_num" property="referenceNum" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="start_date" property="startDate" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="end_date" property="endDate" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="SHOW_START_TIME" property="showStartTime" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="item_status" property="itemStatus" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="rebate_type" property="rebateType" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="pickup_time" property="pickupTime" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="pickupType" property="pickupType" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="region" property="region" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="ota_order_id" property="otaOrderId" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="order_source" property="orderSource" javaType="java.lang.String" jdbcType="VARCHAR" />
+        <result column="account_Type" property="accountType" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </resultMap>
+
     <select id="individualTicketCount" resultType="java.lang.Integer">
-        select count(1) from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id
+        select  count(1) from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id where i.business_type='TICKET' and o.ORDER_CHANNEL = 'INDIVIDUAL'
     </select>
 
     <select id="individualTicketQuery" resultMap="individualTicket">
-        select o.ACCOUNT_ID,o.USER_ACCOUNT_NAME from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id
+        select decode(o.ACCOUNT_ID,o.USER_ACCOUNT_NAME,'代理商主账号','代理商子账号') account_Type,o.ACCOUNT_ID,o.USER_ACCOUNT_NAME,o.id, o.ACCOUNT_NAME,o.gmt_create, i.product_name, s.print_ticket_name, i.proxy_name, i.park_name, i.quantity, i.tran_amount, i.settle_price, o.CONTACT_MOBILE, i.reference_num,i.start_date, i.end_date, i.SHOW_START_TIME, o.order_status item_status,        case s.rebate_type when '0' then '不计算返利' when '1' then '计算返利' when '2' then '计算基数不计算返利' end rebate_type, i.pickup_time, i.pickup_type, case i.region when 'GZ' then '广州长隆' when 'ZH' then '珠海长隆' when 'QY' then '清远长隆' end region, o.ota_order_id, case o.order_source when 'OTA' then '接口售票' when 'DISTRIBUTOR' then '长隆客户端售票' end order_source from dmp_main_order_item i  join dmp_main_order o on o.id=i.order_id      join dmp_main_proxy_prod_set s on i.product_code=s.product_code and i.proxy_id=s.sales_proxy_id --where i.business_type='TICKET' and o.ORDER_CHANNEL = 'INDIVIDUAL'
     </select>
 
     <select id="depositAccountLogCount" resultType="java.lang.Integer">
         select count(1) from DMP_MAIN_DEPOSIT_ACCOUNT_LOG log join DMP_MAIN_DEPOSIT_ACCOUNT da on da.ID = log.DEPOSIT_ACCOUNT_ID join DMP_MAIN_ACCOUNT a on a.ID = da.ACCOUNT_ID
---         where CATEGORY <![CDATA[ <> ]]> 'FREEZE_AMOUNT' and CATEGORY <![CDATA[ <> ]]> 'UNFREEZE_AMOUNT'
+        where CATEGORY <![CDATA[ <> ]]> 'FREEZE_AMOUNT' and CATEGORY <![CDATA[ <> ]]> 'UNFREEZE_AMOUNT'
     </select>
 
     <select id="depositAccountLogQuery" resultMap="depositAccountLog">
         select a.ID,a.COMPANY_NAME,log.GMT_CREATE,case da.REGION when 'GZ' then '广州长隆' when 'ZH' then '珠海长隆' when 'QY' then '清远长隆' end region,CATEGORY,SUB_CATEGORY,log.ID logId,TRANSACTION_AMOUNT,OPERATOR_NAME,log.GMT_CREATE operateDate,log.COMMENTS from DMP_MAIN_DEPOSIT_ACCOUNT_LOG log join DMP_MAIN_DEPOSIT_ACCOUNT da on da.ID = log.DEPOSIT_ACCOUNT_ID join DMP_MAIN_ACCOUNT a on a.ID = da.ACCOUNT_ID
---         where CATEGORY <![CDATA[ <> ]]> 'FREEZE_AMOUNT' and CATEGORY <![CDATA[ <> ]]> 'UNFREEZE_AMOUNT'
+        where CATEGORY <![CDATA[ <> ]]> 'FREEZE_AMOUNT' and CATEGORY <![CDATA[ <> ]]> 'UNFREEZE_AMOUNT'
     </select>
 
 
