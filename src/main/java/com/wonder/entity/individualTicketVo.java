@@ -2,14 +2,34 @@ package com.wonder.entity;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 @Data
-public class individualTicketVo {
+public class IndividualTicketVo {
+    private String orderId;
+    private String orderDate;
+    private String productName;
+    private String printTicketName;
+    private String proxyName;
+    private String parkName;
+    private Double quantity;
+    private Double tranAmount;
+    private Double settlePrice;
+    private String contactMobile;
+    private String referenceNum;
+    private String startDate;
+    private String endDate;
+    private String showStartTime;
+    private String itemStatus;
+    private String rebateType;
+    private String pickupTime;
+    private String pickupType;
+    private String region;
+    private String otaOrderId;
     private String accountId;
-
-    private BigDecimal orderId;
-
+    private String accountType;
+    private String userName;
+    private String orderSource;
     private String accountName;
+
+
 
 }
